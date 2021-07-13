@@ -1,14 +1,7 @@
 import { Project } from '../project/project.entity';
 import { CreateUserInput } from './user.input';
 import { UsersService } from './users.service';
-import {
-  Query,
-  Args,
-  Resolver,
-  Mutation,
-  ResolveField,
-  Parent,
-} from '@nestjs/graphql';
+import { Query, Args, Resolver, Mutation } from '@nestjs/graphql';
 import { Logger } from '@nestjs/common';
 import { User } from './user.entity';
 
@@ -45,11 +38,5 @@ export class UserResolver {
     @Args('createUserInput') createUserInput: CreateUserInput,
   ) {
     return this.usersService.updateUser(id, createUserInput);
-  }
-
-  // --TO GET PROJECT FROM USER we have take care 2 things 1st the method name(project) is same as defined in the entity o/w its will not work 2nd one to get project we need id of the project which is avialble as projectid in thr parent
-  @ResolveField(() => Project)
-  project(@Parent() user: User) {
-    return this.usersService.getProject(user.projectId);
   }
 }

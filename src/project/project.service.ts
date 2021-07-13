@@ -11,14 +11,16 @@ export class ProjectService {
     @InjectRepository(Project) private projectRepository: Repository<Project>,
   ) {}
 
+  // CREATE PROJECT
   async createProject(
     createProjectInput: CreateProjectInput,
   ): Promise<Project> {
-    const { name } = createProjectInput;
+    const { id, name, users } = createProjectInput;
 
     const project = this.projectRepository.create({
-      id: uuid(),
+      id,
       name,
+      users,
     });
     return this.projectRepository.save(project);
   }
@@ -38,6 +40,7 @@ export class ProjectService {
     const { name } = createProjectInput;
     const found = await this.getProjectById(id);
     found.name = name || found.name;
+
     await this.projectRepository.save(found);
     return found;
   }

@@ -3,7 +3,6 @@ import { ProjectService } from './../project/project.service';
 import { CreateUserInput } from './user.input';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { User } from './user.entity';
-import { v4 as uuid } from 'uuid';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
@@ -16,32 +15,47 @@ export class UsersService {
 
   // --GET ALL USERS---
   async getAllUsers(): Promise<User[]> {
-    return this.userRepository.find();
+    return this.userRepository.find({ relations: ['projects'] });
+  }
+
+  // GET USER BY ID
+
+  async getUserByID(id: string): Promise<User> {
+    const found = this.userRepository.findOne(
+      { id },
+      { relations: ['projects'] },
+    );
+    if (!found) {
+      throw new NotFoundException(`Task with ID "${id}" not found`);
+    }
+    return found;
   }
 
   //--CREATE USER-----
 
   async createUser(createUserInput: CreateUserInput): Promise<User> {
-    const { firstName, lastName, age, company, projectId } = createUserInput;
+    const { id, firstName, lastName, age, company, projects } = createUserInput;
+
+    // let projectInput;
+
+    // if (projects.length) {
+    //   const project = await this.userRepository.findByIds(projects);
+    //   if (projects?.length) {
+    //     projectInput = project;
+    //   }
+    // }
 
     const user = this.userRepository.create({
-      id: uuid(),
+      id,
       firstName,
       lastName,
       age,
       company,
-      projectId,
+      projects,
+      // projects: projectInput ? projectInput : this.projectService.createProject,
     });
 
     return this.userRepository.save(user);
-  }
-
-  async getUserByID(id: string): Promise<User> {
-    const found = this.userRepository.findOne({ id });
-    if (!found) {
-      throw new NotFoundException(`Task with ID "${id}" not found`);
-    }
-    return found;
   }
 
   async deleteUser(id: string): Promise<void> {
@@ -56,7 +70,7 @@ export class UsersService {
     id: string,
     createUserInput: CreateUserInput,
   ): Promise<User> {
-    const { firstName, lastName, age, company, projectId } = createUserInput;
+    const { firstName, lastName, age, company, projects } = createUserInput;
 
     const found = await this.getUserByID(id);
 
@@ -64,7 +78,7 @@ export class UsersService {
     found.lastName = lastName || found.lastName;
     found.age = age || found.age;
     found.company = company || found.company;
-    found.projectId = projectId || found.projectId;
+    found.projects = projects || found.projects;
 
     await this.userRepository.save(found);
     return found;
